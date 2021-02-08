@@ -4,17 +4,19 @@
 
 A list of skill implemented in this repository
 
-### Listening Skill
-Developed by: ....
+### Cloud Connector Demo (not working)
 
-Listening to event?....
+Developed By: Jef
 
-triggering event?....
+Folder: cloud-connector-demo
 
+Language: Typescript -> Javascript
 
-### Moving Head Skill
-Developed by: ...
+Listening to: "robot bootstrap", continually running
 
-Listening to event: "move-head" ...
+Triggering Event: any
 
-....
+will try to connect to the cloud and perform installation
+this is only an example of a skill description
+
+...

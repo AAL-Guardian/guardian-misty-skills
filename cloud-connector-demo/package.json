@@ -1,0 +1,34 @@
+{
+  "name": "iot-node-connector-test",
+  "version": "1.0.0",
+  "description": "Just a scratch to test connection from javascript to AWS IoT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AAL-Guardian/iot-node-connector-test.git"
+  },
+  "author": "Fabrizio Marconi @ Jef",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AAL-Guardian/iot-node-connector-test/issues"
+  },
+  "homepage": "https://github.com/AAL-Guardian/iot-node-connector-test#readme",
+  "dependencies": {
+    "console-polyfill": "^0.3.0",
+    "mqtt": "^4.2.6",
+    "process": "^0.11.10",
+    "websocket": "^1.0.33"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^6.3.1",
+    "shebang-loader": "0.0.1",
+    "ts-loader": "^8.0.11",
+    "typescript": "^4.0.5",
+    "webpack": "^5.5.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-node-externals": "^2.5.2"
+  }
+}
