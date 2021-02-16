@@ -1,6 +1,6 @@
 namespace CloudConnector.Data
 {
-    public class GuardianMessage
+    public sealed class GuardianMessage
     {
         public string QuardianCommand { get; set; }
 

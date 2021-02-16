@@ -1,15 +1,18 @@
 using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using CloudConnector.Data;
 using CloudConnector.Events;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using Newtonsoft.Json;
 
 namespace CloudConnector.Services
 {
-    public class MqttService : IMqttService
+    public sealed class MqttService : IMqttService
     {
         private readonly IMqttClient _mqttClient;
         private readonly MistyConfiguration _mistyConfiguration;
@@ -22,19 +25,7 @@ namespace CloudConnector.Services
             _mqttClient = new MqttFactory().CreateMqttClient();
         }
 
-        public async Task SendMessageAsync(string payload)
-        {
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(_mistyConfiguration.RobotTopic)
-                .WithPayload(payload)
-                .WithExactlyOnceQoS()
-                .WithRetainFlag()
-                .Build();
-
-            await _mqttClient.PublishAsync(message, CancellationToken.None);
-        }
-
-        public async Task Start()
+        public IAsyncAction Start()
         {
             // Create TCP based options using the builder.
             var options = new MqttClientOptionsBuilder()
@@ -48,18 +39,29 @@ namespace CloudConnector.Services
                 await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(_mistyConfiguration.RobotTopic).Build());
             });
 
-            _mqttClient.UseApplicationMessageReceivedHandler(async e =>
+            _mqttClient.UseApplicationMessageReceivedHandler(e =>
             {
+                string payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                dynamic payloadObj = JsonConvert.DeserializeObject(payload);
                 MqttMessageReceivedData data = new MqttMessageReceivedData();
+                data.command = payloadObj.command;
+                data.data = payloadObj.data;
                 OnMqttMessageReceived(data);
             });
 
-            await _mqttClient.ConnectAsync(options, CancellationToken.None);
+            return _mqttClient.ConnectAsync(options, CancellationToken.None).AsAsyncAction();
         }
 
-        public void OnMistyMessage(object sender, MistyMessageReceivedData data)
+        public async void OnMistyMessage(object sender, MistyMessageReceivedData data)
         {
-            
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic(_mistyConfiguration.RobotTopic)
+                .WithPayload(JsonConvert.SerializeObject(data))
+                .WithExactlyOnceQoS()
+                .WithRetainFlag()
+                .Build();
+
+            await _mqttClient.PublishAsync(message, CancellationToken.None);
         }
         
         private void OnMqttMessageReceived(MqttMessageReceivedData data)

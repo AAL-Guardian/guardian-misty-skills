@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CloudConnector.Data
 {
-    public record MistyConfiguration
+    public sealed class MistyConfiguration
     {
         public string ClientId { get; }
         public string Endpoint { get; }

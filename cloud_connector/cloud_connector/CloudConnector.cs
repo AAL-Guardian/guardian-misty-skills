@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using CloudConnector.Services;
 using MistyRobotics.Common.Data;
 using MistyRobotics.SDK;
 using MistyRobotics.SDK.Messengers;
+using Newtonsoft.Json;
 
 namespace CloudConnector
 {
@@ -62,11 +64,12 @@ namespace CloudConnector
 			_mistyConfigurationService = new GuardianConfigurationService(_misty, apiUrl);
 
 			var config = await _mistyConfigurationService.GetConfigurationAsync();
-			_mqttService = new MqttService(config);
-			_mistyEventService = new MistyEventService(_misty);
-			
-			_mqttService.MqttMessageReceived += _mistyEventService.OnMqttMessage;
-			_mistyEventService.MistyMessageReceived += _mqttService.OnMistyMessage;
+			await _misty.SendDebugMessageAsync(JsonConvert.SerializeObject(config));
+			// _mqttService = new MqttService(config);
+			// _mistyEventService = new MistyEventService(_misty);
+
+			// _mqttService.MqttMessageReceived += _mistyEventService.OnMqttMessage;
+			// _mistyEventService.MistyMessageReceived += _mqttService.OnMistyMessage;
         }
 
 		/// <summary>

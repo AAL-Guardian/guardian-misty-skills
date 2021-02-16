@@ -5,10 +5,12 @@ using CloudConnector.Data;
 using MistyRobotics.Common.Types;
 using MistyRobotics.SDK.Messengers;
 using Newtonsoft.Json;
+using Windows.Foundation;
+using Windows.Storage;
 
 namespace CloudConnector.Services
 {
-    public class GuardianConfigurationService : IGuardianConfigurationService
+    public sealed class GuardianConfigurationService : IGuardianConfigurationService
     {
         private readonly IRobotMessenger _misty;
         private readonly string _apiUrl;
@@ -21,23 +23,34 @@ namespace CloudConnector.Services
             _apiUrl = apiUrl;
         }
 
-        public async Task<MistyConfiguration> GetConfigurationAsync()
+        public IAsyncOperation<MistyConfiguration> GetConfigurationAsync()
+        {
+            return GetConfigurationAsyncHelper().AsAsyncOperation();
+        }
+        
+        private async Task<MistyConfiguration> GetConfigurationAsyncHelper()
         {
             if (_configuration != null)
             {
                 return _configuration;
             }
             
-            string directory = "C:\\cloud-connector";
+            string directoryName = "cloud-connector";
             string configFileName = "config.json";
-            string fullpath = Path.Combine(directory, configFileName);
-            
-            Directory.CreateDirectory(directory);
-            
-            if (!File.Exists(fullpath))
-            {
-                var result = await _misty.SendExternalRequestAsync("GET", _apiUrl, "", null, null, false, false, null, null);
 
+            var storageLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Documents);
+            StorageFolder folder;
+            if (await storageLibrary.SaveFolder.TryGetItemAsync(directoryName) == null)
+                folder = await storageLibrary.SaveFolder.CreateFolderAsync(directoryName);
+            else
+                folder = await storageLibrary.SaveFolder.GetFolderAsync(directoryName);
+            var storageFile = await folder.TryGetItemAsync(configFileName);
+            
+            if (storageFile == null)
+            {
+                var result = await _misty.SendExternalRequestAsync("GET", _apiUrl, null, null, null, false, false, null, null);
+
+                await _misty.SendDebugMessageAsync(result.ResponseType.ToString());
                 if (result.Status != ResponseStatus.Success || result.Data?.Data == null)
                 {
                     // TODO throw exception?
@@ -46,13 +59,14 @@ namespace CloudConnector.Services
                 
                 _configuration = JsonConvert.DeserializeObject<MistyConfiguration>(result.Data.Data as string);
 
-                await File.WriteAllTextAsync(fullpath,JsonConvert.SerializeObject(_configuration));
+                var file = await folder.CreateFileAsync(configFileName);
+                await FileIO.WriteTextAsync(file, JsonConvert.SerializeObject(_configuration));
             }
             else
             {
                 _configuration =
                     JsonConvert.DeserializeObject<MistyConfiguration>(
-                        await File.ReadAllTextAsync(fullpath)
+                        await FileIO.ReadTextAsync((StorageFile)storageFile)
                         );
             }
 

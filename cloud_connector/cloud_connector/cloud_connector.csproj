@@ -22,6 +22,8 @@
     <AppxPackage>true</AppxPackage>
     <ContainsStartupTask>true</ContainsStartupTask>
     <LangVersion>9</LangVersion>
+    <PackageCertificateThumbprint>12379685B2E3859F1A960E5503FFBAA5389505DD</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -101,7 +103,6 @@
     <Compile Include="Data\MistyConfiguration.cs" />
     <Compile Include="Events\MistyEvent.cs" />
     <Compile Include="Events\MqttEvents.cs" />
-    <Compile Include="GuardianCommand.cs" />
     <Compile Include="Services\IGuardianConfigurationService.cs" />
     <Compile Include="Services\GuardianConfigurationService.cs" />
     <Compile Include="Services\IMistyEventService.cs" />
@@ -116,7 +117,7 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="cloud_connector_TemporaryKey.pfx" />
+    <None Include="CloudConnector_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\Default.rd.xml" />
@@ -147,13 +148,13 @@
       <Version>6.2.9</Version>
     </PackageReference>
     <PackageReference Include="MistyRobotics.Common">
-      <Version>0.8.205-beta</Version>
+      <Version>0.9.214-beta</Version>
     </PackageReference>
     <PackageReference Include="MistyRobotics.SDK">
-      <Version>0.8.78-beta</Version>
+      <Version>0.9.214-beta</Version>
     </PackageReference>
     <PackageReference Include="MistyRobotics.Tools">
-      <Version>0.8.109-beta</Version>
+      <Version>0.9.214-beta</Version>
     </PackageReference>
     <PackageReference Include="MQTTnet">
       <Version>3.0.14</Version>

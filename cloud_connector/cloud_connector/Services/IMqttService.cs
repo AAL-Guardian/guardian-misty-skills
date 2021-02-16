@@ -1,13 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using CloudConnector.Events;
 
 namespace CloudConnector.Services
 {
     public interface IMqttService: IDisposable
     {
-        Task SendMessageAsync(string payload);
-        Task Start();
+        IAsyncAction Start();
         void OnMistyMessage(object sender, MistyMessageReceivedData data);
         event MqttMessageReceivedHandler MqttMessageReceived;
     }
