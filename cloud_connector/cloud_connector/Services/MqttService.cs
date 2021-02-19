@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using CloudConnector.Data;
 using CloudConnector.Events;
+using MistyRobotics.SDK.Messengers;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CloudConnector.Services
 {
@@ -16,12 +18,14 @@ namespace CloudConnector.Services
     {
         private readonly IMqttClient _mqttClient;
         private readonly MistyConfiguration _mistyConfiguration;
+        private readonly IRobotMessenger _misty;
 
         public event MqttMessageReceivedHandler MqttMessageReceived;
         
-        public MqttService(MistyConfiguration mistyConfiguration)
+        public MqttService(MistyConfiguration mistyConfiguration, IRobotMessenger misty)
         {
             _mistyConfiguration = mistyConfiguration;
+            _misty = misty;
             _mqttClient = new MqttFactory().CreateMqttClient();
         }
 
@@ -32,21 +36,40 @@ namespace CloudConnector.Services
                 .WithClientId(_mistyConfiguration.ClientId)
                 .WithTcpServer(_mistyConfiguration.Endpoint)
                 .Build();
-
+            
             _mqttClient.UseConnectedHandler(async e =>
             {
+                await _misty.SendDebugMessageAsync($"Connected to mqtt at: {_mistyConfiguration.Endpoint}.");
                 // Subscribe to a topic
-                await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(_mistyConfiguration.RobotTopic).Build());
+                await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(_mistyConfiguration.RobotTopic + "/commands").Build());
+            });
+            
+            _mqttClient.UseDisconnectedHandler(async e =>
+            {
+                await _misty.SendDebugMessageAsync("Lost connection to mqtt, reconnecting...");
+                await _mqttClient.ConnectAsync(options, CancellationToken.None);
             });
 
-            _mqttClient.UseApplicationMessageReceivedHandler(e =>
+            _mqttClient.UseApplicationMessageReceivedHandler(eventArgs =>
             {
-                string payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                dynamic payloadObj = JsonConvert.DeserializeObject(payload);
-                MqttMessageReceivedData data = new MqttMessageReceivedData();
-                data.command = payloadObj.command;
-                data.data = payloadObj.data;
-                OnMqttMessageReceived(data);
+                try
+                {
+                    string payload = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
+                    dynamic payloadObj = JsonConvert.DeserializeObject(payload);
+                    if (payloadObj is null)
+                    {
+                        throw new ArgumentException("Invalid mqtt payload provided.");
+                    }
+                    MqttMessageReceivedData data = new MqttMessageReceivedData();
+                    data.command = payloadObj.guardian_command;
+                    data.data = ((JObject)payloadObj.guardian_data).ToString(Formatting.None);
+                    OnMqttMessageReceived(data);
+                }
+                catch (Exception e)
+                {
+                    _misty.SendDebugMessageAsync("Invalid mqtt message received.");
+                    _misty.SendDebugMessageAsync(e.Message);
+                }
             });
 
             return _mqttClient.ConnectAsync(options, CancellationToken.None).AsAsyncAction();

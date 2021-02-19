@@ -4,6 +4,7 @@ using CloudConnector.Events;
 using MistyRobotics.SDK.Commands;
 using MistyRobotics.SDK.Events;
 using MistyRobotics.SDK.Messengers;
+using Newtonsoft.Json;
 
 namespace CloudConnector.Services
 {
@@ -19,22 +20,40 @@ namespace CloudConnector.Services
 
         public void StartListening()
         {
-            _misty.RegisterUserEvent("guardian", response =>
-            {
-                MistyMessageReceivedData eventdata = new MistyMessageReceivedData()
-                {
-                    command = response.Data["guardian-command"] as string,
-                    data = response.Data["guardian-data"] as string
-                };
+            _misty.RegisterUserEvent("guardian", GuardianUserEventHandler, 0, true, null);
+        }
 
-                OnMistyMessageReceived(eventdata);
-            }, 0, true, null);
+        private void GuardianUserEventHandler(IUserEvent response)
+        {
+            if (response.Source != "cloud-connector")
+            {
+                try
+                {
+                    dynamic payload = JsonConvert.DeserializeObject(response.Data["Payload"].ToString());
+                    if (payload == null)
+                    {
+                        throw new ArgumentException("Invalid user event payload");
+                    }
+                    MistyMessageReceivedData eventdata = new MistyMessageReceivedData()
+                    {
+                        command = payload["guardian-command"] as string,
+                        data = payload["guardian-data"] as string
+                    };
+
+                    OnMistyMessageReceived(eventdata);
+                }
+                catch (Exception e)
+                {
+                    _misty.SendDebugMessageAsync("Invalid user event received!");
+                    _misty.SendDebugMessageAsync(e.Message);
+                }  
+            }
         }
 
         public async void OnMqttMessage(object sender, MqttMessageReceivedData data)
         {
             await _misty.TriggerEventAsync(
-                "Guardian",
+                "guardian",
                 "cloud-connector",
                 new Dictionary<string, object>()
                 {

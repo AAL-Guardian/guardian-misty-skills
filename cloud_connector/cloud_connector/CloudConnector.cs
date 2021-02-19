@@ -10,7 +10,8 @@ namespace CloudConnector
 {
 	internal class CloudConnector : IMistySkill
 	{
-		private static string ApiEndpointParamName = "ConfigurationEndpoint";
+		private const string ApiEndpointParamName = "ConfigurationEndpoint";
+		private const string ResetConfigParamName = "ResetConfig";
 		
 		private IRobotMessenger _misty;
 		private IGuardianConfigurationService _mistyConfigurationService;
@@ -58,18 +59,25 @@ namespace CloudConnector
 			 */
 
 			string apiUrl = "https://smartrobotsolutions-guardian.free.beeceptor.com/config";
+			// string apiUrl = "https://pou41w0mic.execute-api.eu-west-1.amazonaws.com/dev/robot/install";
 			if (parameters.ContainsKey(ApiEndpointParamName))
 				apiUrl = parameters[ApiEndpointParamName].ToString();
 			
-			_mistyConfigurationService = new GuardianConfigurationService(_misty, apiUrl);
+			bool resetConfig = false;
+			if (parameters.ContainsKey(ResetConfigParamName))
+				resetConfig = Boolean.Parse(parameters[ResetConfigParamName].ToString());
+			
+			_mistyConfigurationService = new GuardianConfigurationService(_misty, apiUrl, resetConfig);
 
 			var config = await _mistyConfigurationService.GetConfigurationAsync();
-			await _misty.SendDebugMessageAsync(JsonConvert.SerializeObject(config));
-			// _mqttService = new MqttService(config);
-			// _mistyEventService = new MistyEventService(_misty);
+			_mqttService = new MqttService(config, _misty);
+			_mistyEventService = new MistyEventService(_misty);
 
-			// _mqttService.MqttMessageReceived += _mistyEventService.OnMqttMessage;
-			// _mistyEventService.MistyMessageReceived += _mqttService.OnMistyMessage;
+			_mqttService.Start();
+			_mistyEventService.StartListening();
+
+			_mqttService.MqttMessageReceived += _mistyEventService.OnMqttMessage;
+			_mistyEventService.MistyMessageReceived += _mqttService.OnMistyMessage;
         }
 
 		/// <summary>

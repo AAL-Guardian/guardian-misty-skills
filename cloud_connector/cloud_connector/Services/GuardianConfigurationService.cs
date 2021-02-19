@@ -14,13 +14,15 @@ namespace CloudConnector.Services
     {
         private readonly IRobotMessenger _misty;
         private readonly string _apiUrl;
+        private bool _resetConfig;
 
         private MistyConfiguration _configuration;
         
-        public GuardianConfigurationService(IRobotMessenger misty, string apiUrl)
+        public GuardianConfigurationService(IRobotMessenger misty, string apiUrl, bool resetConfig)
         {
             _misty = misty;
             _apiUrl = apiUrl;
+            _resetConfig = resetConfig;
         }
 
         public IAsyncOperation<MistyConfiguration> GetConfigurationAsync()
@@ -45,31 +47,42 @@ namespace CloudConnector.Services
             else
                 folder = await storageLibrary.SaveFolder.GetFolderAsync(directoryName);
             var storageFile = await folder.TryGetItemAsync(configFileName);
+
+            if (_resetConfig)
+            {
+                await _misty.SendDebugMessageAsync("Resetting config...");
+                await storageFile.DeleteAsync();
+                _resetConfig = false;
+                storageFile = null;
+            }
             
             if (storageFile == null)
             {
-                var result = await _misty.SendExternalRequestAsync("GET", _apiUrl, null, null, null, false, false, null, null);
-
-                await _misty.SendDebugMessageAsync(result.ResponseType.ToString());
+                await _misty.SendDebugMessageAsync($"Getting config from: {_apiUrl}.");
+                var postData = "{\"robotCode\": \"12312312312\"}";
+                var result = await _misty.SendExternalRequestAsync("POST", _apiUrl, null, null, postData, false, false, null, null);
                 if (result.Status != ResponseStatus.Success || result.Data?.Data == null)
                 {
-                    // TODO throw exception?
-                    // result.ErrorMessage
+                    await _misty.SendDebugMessageAsync("Couldn't get configuration from specified endpoint.");
+                    // TODO throw error and try again in a couple of minutes
                 }
                 
                 _configuration = JsonConvert.DeserializeObject<MistyConfiguration>(result.Data.Data as string);
 
                 var file = await folder.CreateFileAsync(configFileName);
                 await FileIO.WriteTextAsync(file, JsonConvert.SerializeObject(_configuration));
+                await _misty.SendDebugMessageAsync("Received new config.");
             }
             else
             {
+                await _misty.SendDebugMessageAsync("Getting config from local storage.");
                 _configuration =
                     JsonConvert.DeserializeObject<MistyConfiguration>(
                         await FileIO.ReadTextAsync((StorageFile)storageFile)
                         );
             }
 
+            await _misty.SendDebugMessageAsync(JsonConvert.SerializeObject(_configuration, Formatting.Indented));
             return _configuration;
         }
 
