@@ -1,47 +1,45 @@
-import { Misty, Question } from "./types";
-import { IClientOptions, MqttClient, Packet } from "mqtt";
-import * as mqtt from "mqtt";
-declare var misty: Misty;
+import { Packet, connect } from "mqtt";
+import bent = require('bent');
+
+const post = bent('POST', 'json', 200);
 
 async function main() {
-  const data = {
-    clientId: "robot8c70564a",
-    endpoint: "a2tjpje3lbynp5-ats.iot.eu-west-1.amazonaws.com",
-    robotCode: "12312312312",
-    robotTopic: "misty-12312312312",
-    token: "94a4b8f3-c3ce-4f21-8850-8e661697aad5"
-  }
-
   try {
-    const connection = mqtt.connect({
-      host: data.endpoint,
-      protocol: 'wss',
-      path: '/mqtt?x-amz-customauthorizer-name=GuardianAuthorizer',
-      hostname: data.endpoint,
-      clientId: data.clientId,
-      reconnectPeriod: 1000 * 5,
-      transformWsUrl(url: string, options: IClientOptions, client: MqttClient) {
-        options.username = data.token;
-        return url;
-      }
+    const data: any = await post('https://pou41w0mic.execute-api.eu-west-1.amazonaws.com/dev/robot/install', { robotCode: 'testasd123' });
+    console.log(data);
+    const connection = connect(
+      {
+        host: data.endpoint,
+        port: 8883,
+        protocol: 'mqtt',
+        clientId: data.certificate.certificateId,
+        rejectUnauthorized: false,
+        cert: data.certificate.certificatePem,
+        key: data.certificate.keyPair.PrivateKey,
+        reconnectPeriod: 1000 * 30,
+      });
+
+    connection.on('connect', () => {
+      console.log('connected');
+      connection.subscribe(`${data.robotTopic}/test`, (err, grant) => console.log(err, grant));
+      setTimeout(() => {
+        connection.publish(`${data.robotTopic}/test`, 'test');  
+      }, 3000);
+      
     });
-    misty.DisplayText('Tried to connect');
-    connection.on('Connect', () => {
-      misty.DisplayText('Connected');
-    })
     connection.on('error', (error) => {
-      misty.DisplayText(JSON.stringify(error));
-    })
-    connection.subscribe(`${data.robotTopic}/question`);
+      console.log(error);
+    });
+    connection.on('close', () => {
+      console.log('closed');
+    });
     connection.on("message", (topic: string, payload: Buffer, packet: Packet) => {
-      misty.DisplayText(topic);
-      const question = JSON.parse(payload.toString()) as Question;
-      misty.PlayAudio(question.audioUrl, 5);
-    })
+      console.log(topic, payload.toString())
+    });
 
   } catch (e) {
-    misty.DisplayText(JSON.stringify(e.message));
+    console.error(e);
   }
 }
-misty.DisplayText('Ciao Ilaria');
+
 main();
