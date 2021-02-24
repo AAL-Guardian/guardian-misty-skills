@@ -50,7 +50,7 @@ namespace CloudConnector.Services
                 folder = await storageLibrary.SaveFolder.GetFolderAsync(directoryName);
             var storageFile = await folder.TryGetItemAsync(configFileName);
 
-            if (_resetConfig)
+            if (_resetConfig && storageFile != null)
             {
                 await _misty.SendDebugMessageAsync("Resetting config...");
                 await storageFile.DeleteAsync();

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using CloudConnector.Data;
 using CloudConnector.Events;
+using MistyRobotics.Common.Types;
 using MistyRobotics.SDK.Messengers;
 using MQTTnet;
 using MQTTnet.Client;
@@ -34,8 +35,7 @@ namespace CloudConnector.Services
             // Create TCP based options using the builder.
             var options = new MqttClientOptionsBuilder()
                 .WithClientId(_mistyConfiguration.ClientId)
-                .WithWebSocketServer(_mistyConfiguration.Endpoint + "/mqtt?x-amz-customauthorizer-name=GuardianAuthorizer")
-                .WithCredentials(_mistyConfiguration.Token, (string)null)
+                .WithTcpServer(_mistyConfiguration.Endpoint)
                 .Build();
             
             _mqttClient.UseConnectedHandler(async e =>
@@ -47,8 +47,12 @@ namespace CloudConnector.Services
             
             _mqttClient.UseDisconnectedHandler(async e =>
             {
-                await _misty.SendDebugMessageAsync("Lost connection to mqtt, reconnecting...");
-                await _mqttClient.ConnectAsync(options, CancellationToken.None);
+                if (_misty.SkillStatus == NativeSkillStatus.Running)
+                {
+                    await _misty.SendDebugMessageAsync("Lost connection to mqtt, reconnecting...");
+                    await _misty.WaitAsync(2000);
+                    await _mqttClient.ConnectAsync(options, CancellationToken.None);   
+                }
             });
 
             _mqttClient.UseApplicationMessageReceivedHandler(eventArgs =>
@@ -73,6 +77,7 @@ namespace CloudConnector.Services
                 }
             });
 
+            _misty.SendDebugMessageAsync($"Trying to connect to mqtt at: {_mistyConfiguration.Endpoint}.");
             return _mqttClient.ConnectAsync(options, CancellationToken.None).AsAsyncAction();
         }
 
@@ -85,6 +90,7 @@ namespace CloudConnector.Services
                 .WithRetainFlag()
                 .Build();
 
+            await _misty.SendDebugMessageAsync($"Trying to connect to mqtt at: {_mistyConfiguration.Endpoint}.");
             await _mqttClient.PublishAsync(message, CancellationToken.None);
         }
         
