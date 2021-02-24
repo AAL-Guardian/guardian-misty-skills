@@ -25,7 +25,7 @@ namespace CloudConnector.Services
 
         private void GuardianUserEventHandler(IUserEvent response)
         {
-            if (response.Source != "cloud-connector")
+            if (response.Source != "cloud_connector")
             {
                 try
                 {
@@ -36,8 +36,8 @@ namespace CloudConnector.Services
                     }
                     MistyMessageReceivedData eventdata = new MistyMessageReceivedData()
                     {
-                        command = payload["guardian-command"] as string,
-                        data = payload["guardian-data"] as string
+                        command = payload.guardian_command as string,
+                        data = payload.guardian_data as string
                     };
 
                     OnMistyMessageReceived(eventdata);
@@ -54,11 +54,11 @@ namespace CloudConnector.Services
         {
             await _misty.TriggerEventAsync(
                 "guardian",
-                "cloud-connector",
+                "cloud_connector",
                 new Dictionary<string, object>()
                 {
-                    {"guardian-command", data.command},
-                    {"guardian-data", data.data}
+                    {"guardian_command", data.command},
+                    {"guardian_data", data.data}
                 },
                 new List<string>());
         }

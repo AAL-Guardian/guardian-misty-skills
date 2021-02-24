@@ -34,7 +34,8 @@ namespace CloudConnector.Services
             // Create TCP based options using the builder.
             var options = new MqttClientOptionsBuilder()
                 .WithClientId(_mistyConfiguration.ClientId)
-                .WithTcpServer(_mistyConfiguration.Endpoint)
+                .WithWebSocketServer(_mistyConfiguration.Endpoint + "/mqtt?x-amz-customauthorizer-name=GuardianAuthorizer")
+                .WithCredentials(_mistyConfiguration.Token, (string)null)
                 .Build();
             
             _mqttClient.UseConnectedHandler(async e =>

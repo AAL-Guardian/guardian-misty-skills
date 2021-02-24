@@ -12,6 +12,7 @@ namespace CloudConnector
 	{
 		private const string ApiEndpointParamName = "ConfigurationEndpoint";
 		private const string ResetConfigParamName = "ResetConfig";
+		private const string RobotCodeParamName = "RobotCode";
 		
 		private IRobotMessenger _misty;
 		private IGuardianConfigurationService _mistyConfigurationService;
@@ -28,7 +29,7 @@ namespace CloudConnector
 		///   BroadcastMode - different modes can be set to share different levels of information from the robot using the 'SkillData' websocket
 		///   AllowedCleanupTimeInMs - How long to wait after calling OnCancel before denying messages from the skill and performing final cleanup  
 		/// </summary>
-		public INativeRobotSkill Skill { get; private set; } = new NativeRobotSkill("cloud-connector", "cb2b1aa5-1226-4554-8a61-2a87ab957c8f")
+		public INativeRobotSkill Skill { get; private set; } = new NativeRobotSkill("cloud_connector", "cb2b1aa5-1226-4554-8a61-2a87ab957c8f")
 		{
 			AllowedCleanupTimeInMs = 1000,
 			TimeoutInSeconds = int.MaxValue
@@ -58,16 +59,20 @@ namespace CloudConnector
 			 * 4 -> listen for event from misty
 			 */
 
-			string apiUrl = "https://smartrobotsolutions-guardian.free.beeceptor.com/config";
-			// string apiUrl = "https://pou41w0mic.execute-api.eu-west-1.amazonaws.com/dev/robot/install";
+			// string apiUrl = "https://smartrobotsolutions-guardian.free.beeceptor.com/config";
+			string apiUrl = "https://pou41w0mic.execute-api.eu-west-1.amazonaws.com/dev/robot/install";
 			if (parameters.ContainsKey(ApiEndpointParamName))
 				apiUrl = parameters[ApiEndpointParamName].ToString();
 			
-			bool resetConfig = false;
+			bool resetConfig = true;
 			if (parameters.ContainsKey(ResetConfigParamName))
 				resetConfig = Boolean.Parse(parameters[ResetConfigParamName].ToString());
 			
-			_mistyConfigurationService = new GuardianConfigurationService(_misty, apiUrl, resetConfig);
+			string robotCode = "12312312312";
+			if (parameters.ContainsKey(RobotCodeParamName))
+				robotCode = parameters[RobotCodeParamName].ToString();
+			
+			_mistyConfigurationService = new GuardianConfigurationService(_misty, apiUrl, resetConfig, robotCode);
 
 			var config = await _mistyConfigurationService.GetConfigurationAsync();
 			_mqttService = new MqttService(config, _misty);

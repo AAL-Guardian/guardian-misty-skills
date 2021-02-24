@@ -14,15 +14,17 @@ namespace CloudConnector.Services
     {
         private readonly IRobotMessenger _misty;
         private readonly string _apiUrl;
+        private readonly string _robotCode;
         private bool _resetConfig;
 
         private MistyConfiguration _configuration;
         
-        public GuardianConfigurationService(IRobotMessenger misty, string apiUrl, bool resetConfig)
+        public GuardianConfigurationService(IRobotMessenger misty, string apiUrl, bool resetConfig, string robotCode)
         {
             _misty = misty;
             _apiUrl = apiUrl;
             _resetConfig = resetConfig;
+            _robotCode = robotCode;
         }
 
         public IAsyncOperation<MistyConfiguration> GetConfigurationAsync()
@@ -37,7 +39,7 @@ namespace CloudConnector.Services
                 return _configuration;
             }
             
-            string directoryName = "cloud-connector";
+            string directoryName = "cloud_connector";
             string configFileName = "config.json";
 
             var storageLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Documents);
@@ -59,7 +61,7 @@ namespace CloudConnector.Services
             if (storageFile == null)
             {
                 await _misty.SendDebugMessageAsync($"Getting config from: {_apiUrl}.");
-                var postData = "{\"robotCode\": \"12312312312\"}";
+                var postData = "{\"robotCode\": \"" + _robotCode + "\"}";
                 var result = await _misty.SendExternalRequestAsync("POST", _apiUrl, null, null, postData, false, false, null, null);
                 if (result.Status != ResponseStatus.Success || result.Data?.Data == null)
                 {
