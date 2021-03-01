@@ -50,7 +50,7 @@
             </uap3:Properties>
           </uap3:AppExtension>
         </uap3:Extension>
-        <uap:Extension Category="windows.fileTypeAssociation">
+        <uap:Extension Category="windows.fileTypeAssociation" Executable="Dummy.exe" EntryPoint="Dummy.app">
           <uap:FileTypeAssociation Name="filetypes">
             <uap:SupportedFileTypes>
               <uap:FileType>.json</uap:FileType>

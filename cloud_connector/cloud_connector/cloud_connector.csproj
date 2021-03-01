@@ -129,6 +129,9 @@
     <None Include="CloudConnector_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="certificate.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png">
       <InProject>false</InProject>

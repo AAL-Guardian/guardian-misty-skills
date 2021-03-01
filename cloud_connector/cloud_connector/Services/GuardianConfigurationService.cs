@@ -84,7 +84,7 @@ namespace CloudConnector.Services
                         );
             }
 
-            await _misty.SendDebugMessageAsync(JsonConvert.SerializeObject(_configuration, Formatting.Indented));
+            // await _misty.SendDebugMessageAsync(JsonConvert.SerializeObject(_configuration, Formatting.Indented));
             return _configuration;
         }
 

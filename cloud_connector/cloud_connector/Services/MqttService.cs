@@ -1,5 +1,8 @@
 using System;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -10,6 +13,7 @@ using MistyRobotics.SDK.Messengers;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using MQTTnet.Formatter;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -32,10 +36,39 @@ namespace CloudConnector.Services
 
         public IAsyncAction Start()
         {
+            // var cert = _mistyConfiguration.Certificate.CertificatePem + "\n" +
+            //            _mistyConfiguration.Certificate.KeyPair.PrivateKey;
+            // var pemData = Regex.Replace(Regex.Replace(cert, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
+            // var pemBytes = Convert.FromBase64String(pemData);
+            // var privPemData = Regex.Replace(Regex.Replace(_mistyConfiguration.Certificate.KeyPair.PrivateKey, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
+            // var privPemBytes = Convert.FromBase64String(privPemData);
+            // var certs = new []
+            // {
+            //     pemBytes,
+            //     privPemBytes
+            // };
+            
+            
+            var certificate = new X509Certificate2("./certificate.pfx", string.Empty, 
+                X509KeyStorageFlags.Exportable);
+            // certificate.CopyWithPrivateKey(privPemBytes)
+            //var rsa = new RSACryptoServiceProvider(cspParams);
+            //
+            // rsa.ImportCspBlob(privPemBytes);
+            // rsa.PersistKeyInCsp = true;
+            // certificate.PrivateKey = rsa;
+            
             // Create TCP based options using the builder.
             var options = new MqttClientOptionsBuilder()
-                .WithClientId(_mistyConfiguration.ClientId)
-                .WithTcpServer(_mistyConfiguration.Endpoint)
+                .WithClientId(_mistyConfiguration.Certificate.CertificateId)
+                .WithTcpServer(_mistyConfiguration.Endpoint, 8883)
+                .WithProtocolVersion(MqttProtocolVersion.V311)
+                .WithTls(new MqttClientOptionsBuilderTlsParameters()
+                {
+                    UseTls = true,
+                    Certificates = new []{ certificate.Export(X509ContentType.SerializedCert)},
+                    AllowUntrustedCertificates = true
+                })
                 .Build();
             
             _mqttClient.UseConnectedHandler(async e =>
@@ -49,8 +82,10 @@ namespace CloudConnector.Services
             {
                 if (_misty.SkillStatus == NativeSkillStatus.Running)
                 {
+                    await _misty.SendDebugMessageAsync(e.Reason.ToString());
+                    await _misty.SendDebugMessageAsync(e.Exception.Message);
                     await _misty.SendDebugMessageAsync("Lost connection to mqtt, reconnecting...");
-                    await _misty.WaitAsync(2000);
+                    await _misty.WaitAsync(5000);
                     await _mqttClient.ConnectAsync(options, CancellationToken.None);   
                 }
             });

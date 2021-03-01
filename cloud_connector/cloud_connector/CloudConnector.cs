@@ -68,7 +68,7 @@ namespace CloudConnector
 			if (parameters.ContainsKey(ResetConfigParamName))
 				resetConfig = Boolean.Parse(parameters[ResetConfigParamName].ToString());
 			
-			string robotCode = "12312312312";
+			string robotCode = "testasd123";
 			if (parameters.ContainsKey(RobotCodeParamName))
 				robotCode = parameters[RobotCodeParamName].ToString();
 			
