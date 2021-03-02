@@ -60,7 +60,7 @@ namespace CloudConnector
 			 */
 
 			// string apiUrl = "https://smartrobotsolutions-guardian.free.beeceptor.com/config";
-			string apiUrl = "https://pou41w0mic.execute-api.eu-west-1.amazonaws.com/dev/robot/install";
+			string apiUrl = "https://api.guardian.jef.it/dev/robot/install";
 			if (parameters.ContainsKey(ApiEndpointParamName))
 				apiUrl = parameters[ApiEndpointParamName].ToString();
 			

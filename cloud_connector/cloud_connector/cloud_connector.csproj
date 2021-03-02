@@ -116,8 +116,8 @@
     <Compile Include="Services\GuardianConfigurationService.cs" />
     <Compile Include="Services\IMistyEventService.cs" />
     <Compile Include="Services\IMqttService.cs" />
-    <Compile Include="Services\MistyEventService.cs" />
     <Compile Include="Services\MqttService.cs" />
+    <Compile Include="Services\MistyEventService.cs" />
     <Compile Include="StartupTask.cs" />
     <Compile Include="CloudConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -129,7 +129,7 @@
     <None Include="CloudConnector_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="certificate.pfx">
+    <Content Include="certificate.cert.pfx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Properties\Default.rd.xml" />
@@ -154,8 +154,14 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png">
       <InProject>false</InProject>
     </Content>
+    <Content Include="rootCa.crt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="M2MqttClientDotnetCore">
+      <Version>1.0.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.9</Version>
     </PackageReference>
@@ -167,9 +173,6 @@
     </PackageReference>
     <PackageReference Include="MistyRobotics.Tools">
       <Version>0.9.214-beta</Version>
-    </PackageReference>
-    <PackageReference Include="MQTTnet">
-      <Version>3.0.14</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>12.0.3</Version>

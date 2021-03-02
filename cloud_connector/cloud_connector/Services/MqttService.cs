@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using System.Net;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -8,12 +11,10 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using CloudConnector.Data;
 using CloudConnector.Events;
+using M2Mqtt;
+using M2Mqtt.Messages;
 using MistyRobotics.Common.Types;
 using MistyRobotics.SDK.Messengers;
-using MQTTnet;
-using MQTTnet.Client;
-using MQTTnet.Client.Options;
-using MQTTnet.Formatter;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -21,9 +22,9 @@ namespace CloudConnector.Services
 {
     public sealed class MqttService : IMqttService
     {
-        private readonly IMqttClient _mqttClient;
         private readonly MistyConfiguration _mistyConfiguration;
         private readonly IRobotMessenger _misty;
+        private MqttClient _mqttClient;
 
         public event MqttMessageReceivedHandler MqttMessageReceived;
         
@@ -31,102 +32,66 @@ namespace CloudConnector.Services
         {
             _mistyConfiguration = mistyConfiguration;
             _misty = misty;
-            _mqttClient = new MqttFactory().CreateMqttClient();
         }
 
         public IAsyncAction Start()
         {
-            // var cert = _mistyConfiguration.Certificate.CertificatePem + "\n" +
-            //            _mistyConfiguration.Certificate.KeyPair.PrivateKey;
-            // var pemData = Regex.Replace(Regex.Replace(cert, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
-            // var pemBytes = Convert.FromBase64String(pemData);
-            // var privPemData = Regex.Replace(Regex.Replace(_mistyConfiguration.Certificate.KeyPair.PrivateKey, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
-            // var privPemBytes = Convert.FromBase64String(privPemData);
-            // var certs = new []
-            // {
-            //     pemBytes,
-            //     privPemBytes
-            // };
-            
-            
-            var certificate = new X509Certificate2("./certificate.pfx", string.Empty, 
-                X509KeyStorageFlags.Exportable);
-            // certificate.CopyWithPrivateKey(privPemBytes)
-            //var rsa = new RSACryptoServiceProvider(cspParams);
-            //
-            // rsa.ImportCspBlob(privPemBytes);
-            // rsa.PersistKeyInCsp = true;
-            // certificate.PrivateKey = rsa;
-            
-            // Create TCP based options using the builder.
-            var options = new MqttClientOptionsBuilder()
-                .WithClientId(_mistyConfiguration.Certificate.CertificateId)
-                .WithTcpServer(_mistyConfiguration.Endpoint, 8883)
-                .WithProtocolVersion(MqttProtocolVersion.V311)
-                .WithTls(new MqttClientOptionsBuilderTlsParameters()
-                {
-                    UseTls = true,
-                    Certificates = new []{ certificate.Export(X509ContentType.SerializedCert)},
-                    AllowUntrustedCertificates = true
-                })
-                .Build();
-            
-            _mqttClient.UseConnectedHandler(async e =>
-            {
-                await _misty.SendDebugMessageAsync($"Connected to mqtt at: {_mistyConfiguration.Endpoint}.");
-                // Subscribe to a topic
-                await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(_mistyConfiguration.RobotTopic + "/commands").Build());
-            });
-            
-            _mqttClient.UseDisconnectedHandler(async e =>
-            {
-                if (_misty.SkillStatus == NativeSkillStatus.Running)
-                {
-                    await _misty.SendDebugMessageAsync(e.Reason.ToString());
-                    await _misty.SendDebugMessageAsync(e.Exception.Message);
-                    await _misty.SendDebugMessageAsync("Lost connection to mqtt, reconnecting...");
-                    await _misty.WaitAsync(5000);
-                    await _mqttClient.ConnectAsync(options, CancellationToken.None);   
-                }
-            });
+            var caCert = X509Certificate.CreateFromCertFile("./rootCa.crt");
+            var clientCert = new X509Certificate2("./certificate.cert.pfx");
 
-            _mqttClient.UseApplicationMessageReceivedHandler(eventArgs =>
-            {
-                try
-                {
-                    string payload = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
-                    dynamic payloadObj = JsonConvert.DeserializeObject(payload);
-                    if (payloadObj is null)
-                    {
-                        throw new ArgumentException("Invalid mqtt payload provided.");
-                    }
-                    MqttMessageReceivedData data = new MqttMessageReceivedData();
-                    data.command = payloadObj.guardian_command;
-                    data.data = ((JObject)payloadObj.guardian_data).ToString(Formatting.None);
-                    OnMqttMessageReceived(data);
-                }
-                catch (Exception e)
-                {
-                    _misty.SendDebugMessageAsync("Invalid mqtt message received.");
-                    _misty.SendDebugMessageAsync(e.Message);
-                }
-            });
+            _mqttClient = new MqttClient(_mistyConfiguration.Endpoint, 8883, true, caCert, clientCert, MqttSslProtocols.TLSv1_2);
 
-            _misty.SendDebugMessageAsync($"Trying to connect to mqtt at: {_mistyConfiguration.Endpoint}.");
-            return _mqttClient.ConnectAsync(options, CancellationToken.None).AsAsyncAction();
+            _mqttClient.MqttMsgSubscribed += MqttMsgSubscribed;
+            _mqttClient.MqttMsgPublishReceived += MqttMsgPublishReceived;
+            _mqttClient.ConnectionClosed += MqttConnectionClosed;
+            
+            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
+            _mqttClient.Subscribe(new[] { _mistyConfiguration.RobotTopic }, new[] {MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+            _misty.SendDebugMessageAsync($"Connected to AWS IoT with client id: {_mistyConfiguration.Certificate.CertificateId}.");
+            return Task.CompletedTask.AsAsyncAction();
+        }
+
+        private void MqttMsgSubscribed(object sender, MqttMsgSubscribedEventArgs e)
+        {
+            _misty.SendDebugMessageAsync($"Successfully subscribed to topic.");
+        }
+
+        private void MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
+        {
+            try
+            {
+                string payload = Encoding.UTF8.GetString(e.Message);
+                dynamic payloadObj = JsonConvert.DeserializeObject(payload);
+                if (payloadObj is null)
+                {
+                    throw new ArgumentException("Invalid mqtt payload provided.");
+                }
+                MqttMessageReceivedData data = new MqttMessageReceivedData();
+                data.command = payloadObj.guardian_command;
+                data.data = ((JObject)payloadObj.guardian_data).ToString(Formatting.None);
+                OnMqttMessageReceived(data);
+            }
+            catch (Exception ex)
+            {
+                _misty.SendDebugMessageAsync("Invalid mqtt message received.");
+                _misty.SendDebugMessageAsync(ex.Message);
+            }
+        }
+
+        private void MqttConnectionClosed(object sender, EventArgs e)
+        {
+            if (_misty.SkillStatus == NativeSkillStatus.Running)
+            {
+                _misty.SendDebugMessage("Lost connection to mqtt, reconnecting...", null);
+                _misty.Wait(5000);
+                _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);   
+            }
         }
 
         public async void OnMistyMessage(object sender, MistyMessageReceivedData data)
         {
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(_mistyConfiguration.RobotTopic)
-                .WithPayload(JsonConvert.SerializeObject(data))
-                .WithExactlyOnceQoS()
-                .WithRetainFlag()
-                .Build();
-
-            await _misty.SendDebugMessageAsync($"Trying to connect to mqtt at: {_mistyConfiguration.Endpoint}.");
-            await _mqttClient.PublishAsync(message, CancellationToken.None);
+            await _misty.SendDebugMessageAsync($"Sending message.");
+            _mqttClient.Publish(_mistyConfiguration.RobotTopic, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true);
         }
         
         private void OnMqttMessageReceived(MqttMessageReceivedData data)
@@ -136,7 +101,7 @@ namespace CloudConnector.Services
 
         public void Dispose()
         {
-            _mqttClient?.Dispose();
+            _mqttClient.Disconnect();
         }
     }
 }
