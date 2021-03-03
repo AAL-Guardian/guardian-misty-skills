@@ -68,7 +68,10 @@ namespace CloudConnector.Services
                 }
                 MqttMessageReceivedData data = new MqttMessageReceivedData();
                 data.command = payloadObj.guardian_command;
-                data.data = ((JObject)payloadObj.guardian_data).ToString(Formatting.None);
+                if (payloadObj.guardian_data is JObject jdata)
+                    data.data = jdata.ToString(Formatting.None);
+                else
+                    data.data = payloadObj.guardian_data;
                 OnMqttMessageReceived(data);
             }
             catch (Exception ex)
