@@ -67,8 +67,10 @@ namespace CloudConnector
 			bool resetConfig = true;
 			if (parameters.ContainsKey(ResetConfigParamName))
 				resetConfig = Boolean.Parse(parameters[ResetConfigParamName].ToString());
-			
-			string robotCode = "testasd123";
+
+			var info = await _misty.GetDeviceInformationAsync();
+			// string robotCode = "testasd123";
+			string robotCode = info.Data.SerialNumber;
 			if (parameters.ContainsKey(RobotCodeParamName))
 				robotCode = parameters[RobotCodeParamName].ToString();
 			

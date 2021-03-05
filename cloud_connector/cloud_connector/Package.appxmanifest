@@ -10,14 +10,14 @@
   IgnorableNamespaces="uap mp iot uap3 rescap">
 
   <Identity
-    Name="CloudConnector-uwp"
+    Name="CloudConnector1-uwp"
     Publisher="CN=Laptop-Rick"
-    Version="1.0.7.0" />
+    Version="1.0.21.0" />
 
   <mp:PhoneIdentity PhoneProductId="5c2f077d-c543-4093-9ae1-5de7ce1c285a" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>CloudConnector</DisplayName>
+    <DisplayName>CloudConnector1</DisplayName>
     <PublisherDisplayName>Laptop-Rick</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -33,10 +33,10 @@
   <Applications>
     <Application Id="App">
       <uap:VisualElements
-        DisplayName="CloudConnector"
+        DisplayName="CloudConnector1"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="CloudConnector"
+        Description="CloudConnector1"
         BackgroundColor="transparent"
         AppListEntry="none">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
@@ -44,19 +44,19 @@
       </uap:VisualElements>
       <Extensions>
         <uap3:Extension Category="windows.appExtension">
-          <uap3:AppExtension Name="MistyRobotics.SDK" Id="CloudConnector" DisplayName="CloudConnector" Description="CloudConnector" PublicFolder="Public">
+          <uap3:AppExtension Name="MistyRobotics.SDK" Id="CloudConnector1" DisplayName="CloudConnector1" Description="CloudConnector1" PublicFolder="Public">
             <uap3:Properties>
               <Service>CloudConnector</Service>
             </uap3:Properties>
           </uap3:AppExtension>
         </uap3:Extension>
-        <uap:Extension Category="windows.fileTypeAssociation" Executable="Dummy.exe" EntryPoint="Dummy.app">
-          <uap:FileTypeAssociation Name="filetypes">
-            <uap:SupportedFileTypes>
-              <uap:FileType>.json</uap:FileType>
-            </uap:SupportedFileTypes>
-          </uap:FileTypeAssociation>
-        </uap:Extension>
+<!--        <uap:Extension Category="windows.fileTypeAssociation" EntryPoint="CloudConnector.StartupTask">-->
+<!--          <uap:FileTypeAssociation Name="filetypes">-->
+<!--            <uap:SupportedFileTypes>-->
+<!--              <uap:FileType>.json</uap:FileType>-->
+<!--            </uap:SupportedFileTypes>-->
+<!--          </uap:FileTypeAssociation>-->
+<!--        </uap:Extension>-->
         <uap:Extension Category="windows.appService" EntryPoint="CloudConnector.StartupTask">
           <uap:AppService Name="CloudConnector" />
         </uap:Extension>

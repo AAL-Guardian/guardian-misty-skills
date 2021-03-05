@@ -47,6 +47,7 @@ namespace CloudConnector.Services
             
             _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
             _mqttClient.Subscribe(new[] { _mistyConfiguration.RobotTopic }, new[] {MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE });
+            _misty.SendDebugMessageAsync($"RobotTopic: {_mistyConfiguration.RobotTopic}.");
             _misty.SendDebugMessageAsync($"Connected to AWS IoT with client id: {_mistyConfiguration.Certificate.CertificateId}.");
             return Task.CompletedTask.AsAsyncAction();
         }
@@ -60,6 +61,7 @@ namespace CloudConnector.Services
         {
             try
             {
+                _misty.SendDebugMessageAsync($"Mqtt message received from topic: {e.Topic}.");
                 string payload = Encoding.UTF8.GetString(e.Message);
                 dynamic payloadObj = JsonConvert.DeserializeObject(payload);
                 if (payloadObj is null)
@@ -83,10 +85,11 @@ namespace CloudConnector.Services
 
         private void MqttConnectionClosed(object sender, EventArgs e)
         {
+            _misty.SendDebugMessage("Lost connection to mqtt", null);
             if (_misty.SkillStatus == NativeSkillStatus.Running)
             {
-                _misty.SendDebugMessage("Lost connection to mqtt, reconnecting...", null);
                 _misty.Wait(5000);
+                _misty.SendDebugMessage("Reconnecting to mqtt...", null);
                 _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);   
             }
         }

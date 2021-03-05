@@ -39,27 +39,27 @@ namespace CloudConnector.Services
                 return _configuration;
             }
             
-            string directoryName = "cloud_connector";
-            string configFileName = "config.json";
-
-            var storageLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Documents);
-            StorageFolder folder;
-            if (await storageLibrary.SaveFolder.TryGetItemAsync(directoryName) == null)
-                folder = await storageLibrary.SaveFolder.CreateFolderAsync(directoryName);
-            else
-                folder = await storageLibrary.SaveFolder.GetFolderAsync(directoryName);
-            var storageFile = await folder.TryGetItemAsync(configFileName);
-
-            if (_resetConfig && storageFile != null)
-            {
-                await _misty.SendDebugMessageAsync("Resetting config...");
-                await storageFile.DeleteAsync();
-                _resetConfig = false;
-                storageFile = null;
-            }
+            // string directoryName = "cloud_connector";
+            // string configFileName = "config.json";
+            //
+            // var storageLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Documents);
+            // StorageFolder folder;
+            // if (await storageLibrary.SaveFolder.TryGetItemAsync(directoryName) == null)
+            //     folder = await storageLibrary.SaveFolder.CreateFolderAsync(directoryName);
+            // else
+            //     folder = await storageLibrary.SaveFolder.GetFolderAsync(directoryName);
+            // var storageFile = await folder.TryGetItemAsync(configFileName);
+            //
+            // if (_resetConfig && storageFile != null)
+            // {
+            //     await _misty.SendDebugMessageAsync("Resetting config...");
+            //     await storageFile.DeleteAsync();
+            //     _resetConfig = false;
+            //     storageFile = null;
+            // }
             
-            if (storageFile == null)
-            {
+            // if (storageFile == null)
+            // {
                 await _misty.SendDebugMessageAsync($"Getting config from: {_apiUrl}.");
                 var postData = "{\"robotCode\": \"" + _robotCode + "\"}";
                 var result = await _misty.SendExternalRequestAsync("POST", _apiUrl, null, null, postData, false, false, null, null);
@@ -71,18 +71,18 @@ namespace CloudConnector.Services
                 
                 _configuration = JsonConvert.DeserializeObject<MistyConfiguration>(result.Data.Data as string);
 
-                var file = await folder.CreateFileAsync(configFileName);
-                await FileIO.WriteTextAsync(file, JsonConvert.SerializeObject(_configuration));
+                // var file = await folder.CreateFileAsync(configFileName);
+                // await FileIO.WriteTextAsync(file, JsonConvert.SerializeObject(_configuration));
                 await _misty.SendDebugMessageAsync("Received new config.");
-            }
-            else
-            {
-                await _misty.SendDebugMessageAsync("Getting config from local storage.");
-                _configuration =
-                    JsonConvert.DeserializeObject<MistyConfiguration>(
-                        await FileIO.ReadTextAsync((StorageFile)storageFile)
-                        );
-            }
+            // }
+            // else
+            // {
+            //     await _misty.SendDebugMessageAsync("Getting config from local storage.");
+            //     _configuration =
+            //         JsonConvert.DeserializeObject<MistyConfiguration>(
+            //             await FileIO.ReadTextAsync((StorageFile)storageFile)
+            //             );
+            // }
 
             // await _misty.SendDebugMessageAsync(JsonConvert.SerializeObject(_configuration, Formatting.Indented));
             return _configuration;
