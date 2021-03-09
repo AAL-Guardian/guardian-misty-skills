@@ -1,7 +1,7 @@
 using System;
 using CloudConnector.Events;
 
-namespace CloudConnector.Services
+namespace CloudConnector.Services.Interfaces
 {
     public interface IMistyEventService: IDisposable
     {

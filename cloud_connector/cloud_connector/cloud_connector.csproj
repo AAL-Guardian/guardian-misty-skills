@@ -112,10 +112,10 @@
     <Compile Include="Data\MistyConfiguration.cs" />
     <Compile Include="Events\MistyEvent.cs" />
     <Compile Include="Events\MqttEvents.cs" />
-    <Compile Include="Services\IGuardianConfigurationService.cs" />
     <Compile Include="Services\GuardianConfigurationService.cs" />
-    <Compile Include="Services\IMistyEventService.cs" />
-    <Compile Include="Services\IMqttService.cs" />
+    <Compile Include="Services\Interfaces\IGuardianConfigurationService.cs" />
+    <Compile Include="Services\Interfaces\IMistyEventService.cs" />
+    <Compile Include="Services\Interfaces\IMqttService.cs" />
     <Compile Include="Services\MqttService.cs" />
     <Compile Include="Services\MistyEventService.cs" />
     <Compile Include="StartupTask.cs" />
@@ -159,6 +159,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="BouncyCastle">
+      <Version>1.8.9</Version>
+    </PackageReference>
     <PackageReference Include="M2MqttClientDotnetCore">
       <Version>1.0.1</Version>
     </PackageReference>

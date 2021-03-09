@@ -1,9 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using CloudConnector.Events;
 
-namespace CloudConnector.Services
+namespace CloudConnector.Services.Interfaces
 {
     public interface IMqttService: IDisposable
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CloudConnector.Events;
+using CloudConnector.Services.Interfaces;
 using MistyRobotics.SDK.Commands;
 using MistyRobotics.SDK.Events;
 using MistyRobotics.SDK.Messengers;

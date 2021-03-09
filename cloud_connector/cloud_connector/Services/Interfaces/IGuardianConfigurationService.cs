@@ -1,9 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using CloudConnector.Data;
 
-namespace CloudConnector.Services
+namespace CloudConnector.Services.Interfaces
 {
     public interface IGuardianConfigurationService: IDisposable
     {

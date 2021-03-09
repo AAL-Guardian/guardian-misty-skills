@@ -7,6 +7,7 @@ using MistyRobotics.SDK.Messengers;
 using Newtonsoft.Json;
 using Windows.Foundation;
 using Windows.Storage;
+using CloudConnector.Services.Interfaces;
 
 namespace CloudConnector.Services
 {

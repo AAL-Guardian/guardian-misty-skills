@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CloudConnector.Services;
+using CloudConnector.Services.Interfaces;
 using MistyRobotics.Common.Data;
 using MistyRobotics.SDK;
 using MistyRobotics.SDK.Messengers;
@@ -69,7 +70,6 @@ namespace CloudConnector
 				resetConfig = Boolean.Parse(parameters[ResetConfigParamName].ToString());
 
 			var info = await _misty.GetDeviceInformationAsync();
-			// string robotCode = "testasd123";
 			string robotCode = info.Data.SerialNumber;
 			if (parameters.ContainsKey(RobotCodeParamName))
 				robotCode = parameters[RobotCodeParamName].ToString();
