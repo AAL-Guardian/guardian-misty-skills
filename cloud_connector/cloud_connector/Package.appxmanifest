@@ -12,7 +12,7 @@
   <Identity
     Name="CloudConnector1-uwp"
     Publisher="CN=SmartRobotSolutions"
-    Version="1.0.23.0" />
+    Version="1.0.24.0" />
 
   <mp:PhoneIdentity PhoneProductId="5c2f077d-c543-4093-9ae1-5de7ce1c285a" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -50,13 +50,6 @@
             </uap3:Properties>
           </uap3:AppExtension>
         </uap3:Extension>
-<!--        <uap:Extension Category="windows.fileTypeAssociation" EntryPoint="CloudConnector.StartupTask">-->
-<!--          <uap:FileTypeAssociation Name="filetypes">-->
-<!--            <uap:SupportedFileTypes>-->
-<!--              <uap:FileType>.json</uap:FileType>-->
-<!--            </uap:SupportedFileTypes>-->
-<!--          </uap:FileTypeAssociation>-->
-<!--        </uap:Extension>-->
         <uap:Extension Category="windows.appService" EntryPoint="CloudConnector.StartupTask">
           <uap:AppService Name="CloudConnector" />
         </uap:Extension>

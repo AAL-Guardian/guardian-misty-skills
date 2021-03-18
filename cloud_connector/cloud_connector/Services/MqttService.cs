@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.Storage;
 using CloudConnector.Data;
 using CloudConnector.Events;
 using CloudConnector.Services.Interfaces;
@@ -38,31 +39,59 @@ namespace CloudConnector.Services
 
         public IAsyncAction Start()
         {
-            var caCert = X509Certificate.CreateFromCertFile("./rootCa.crt");
+            return RunStart().AsAsyncAction();
+        }
+
+        private async Task RunStart()
+        {
+            try
+            {
+                var caCert = X509Certificate.CreateFromCertFile("./rootCa.crt");
             
-            // var cert = _mistyConfiguration.Certificate.CertificatePem;
-            // var pemData = Regex.Replace(Regex.Replace(cert, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
-            // var pemBytes = Convert.FromBase64String(pemData);
-            //
-            // var baseCert = new X509Certificate2(pemBytes);
-            // var rsa = ImportPrivateKey(_mistyConfiguration.Certificate.KeyPair.PrivateKey);
-            // var clientCert = baseCert.CopyWithPrivateKey(rsa);
+                StorageFolder storageFolder =
+                    ApplicationData.Current.LocalFolder;
+                StorageFile sampleFile =
+                    await storageFolder.CreateFileAsync("cert.pfx",
+                        CreationCollisionOption.ReplaceExisting);
+                byte[] report = Encoding.ASCII.GetBytes(_mistyConfiguration.Certificate.pfx);
+                
+                String[] bytesString = _mistyConfiguration.Certificate.pfx.Split(" ");
+                byte[] bytes = new byte[bytesString.Length];
+                for(int i = 0 ; i < bytes.Length ; ++i) {
+                    bytes[i] = Byte.Parse(bytesString[i]);
+                }
+                
+                await FileIO.WriteBytesAsync(sampleFile, bytes);
+            
+                // var cert = _mistyConfiguration.Certificate.pfx;
+                // var pemData = Regex.Replace(Regex.Replace(cert, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
+                // var pemBytes = Convert.FromBase64String(pemData);
+            
+                // var baseCert = new X509Certificate2(pemBytes);
+                // var rsa = ImportPrivateKey(_mistyConfiguration.Certificate.KeyPair.PrivateKey);
+                // var clientCert = baseCert.CopyWithPrivateKey(rsa);
 
-            var clientCert = new X509Certificate2("./certificate.cert.pfx");
+                X509Certificate2 clientCert = new X509Certificate2();
+                clientCert.Import(File.ReadAllBytes(Path.Combine(storageFolder.Path, "cert.pfx")), (string)null, X509KeyStorageFlags.Exportable);
 
-            _mqttClient = new MqttClient(_mistyConfiguration.Endpoint, 8883, true, caCert, clientCert,
-                MqttSslProtocols.TLSv1_2);
+                _mqttClient = new MqttClient(_mistyConfiguration.Endpoint, 8883, true, caCert, clientCert,
+                    MqttSslProtocols.TLSv1_2);
 
-            _mqttClient.MqttMsgSubscribed += MqttMsgSubscribed;
-            _mqttClient.MqttMsgPublishReceived += MqttMsgPublishReceived;
-            _mqttClient.ConnectionClosed += MqttConnectionClosed;
+                _mqttClient.MqttMsgSubscribed += MqttMsgSubscribed;
+                _mqttClient.MqttMsgPublishReceived += MqttMsgPublishReceived;
+                _mqttClient.ConnectionClosed += MqttConnectionClosed;
 
-            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
-            _mqttClient.Subscribe(new[] {_mistyConfiguration.RobotTopic}, new[] {MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE});
-            _misty.SendDebugMessageAsync($"RobotTopic: {_mistyConfiguration.RobotTopic}.");
-            _misty.SendDebugMessageAsync(
-                $"Connected to AWS IoT with client id: {_mistyConfiguration.Certificate.CertificateId}.");
-            return Task.CompletedTask.AsAsyncAction();
+                _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
+                _mqttClient.Subscribe(new[] {_mistyConfiguration.RobotTopic + "/command"}, new[] {MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE});
+                await _misty.SendDebugMessageAsync($"RobotTopic: {_mistyConfiguration.RobotTopic}.");
+                await _misty.SendDebugMessageAsync(
+                    $"Connected to AWS IoT with client id: {_mistyConfiguration.Certificate.CertificateId}.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private void MqttMsgSubscribed(object sender, MqttMsgSubscribedEventArgs e)
@@ -122,7 +151,7 @@ namespace CloudConnector.Services
 
         public void Dispose()
         {
-            _mqttClient.Disconnect();
+            _mqttClient?.Disconnect();
         }
         
         private RSACryptoServiceProvider ImportPrivateKey(string pem) {

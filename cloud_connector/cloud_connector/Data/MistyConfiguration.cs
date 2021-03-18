@@ -8,9 +8,10 @@ namespace CloudConnector.Data
         public string RobotTopic { get; }
         public string Token { get; }
         public MistyConfigurationCertificate Certificate { get; }
-        
 
-        public MistyConfiguration(string clientId, string endpoint, string robotCode, string robotTopic, string token, MistyConfigurationCertificate certificate)
+
+        public MistyConfiguration(string clientId, string endpoint, string robotCode, string robotTopic, string token,
+            MistyConfigurationCertificate certificate)
         {
             Certificate = certificate;
             (ClientId, Endpoint, RobotCode, RobotTopic, Token) = (clientId, endpoint, robotCode, robotTopic, token);
@@ -19,16 +20,19 @@ namespace CloudConnector.Data
 
     public sealed class MistyConfigurationCertificate
     {
-        public MistyConfigurationCertificate(string certificateId, string certificatePem, MistyConfigurationCertificateKeyPair keyPair)
+        public MistyConfigurationCertificate(string certificateId, string certificatePem,
+            MistyConfigurationCertificateKeyPair keyPair, string pfx)
         {
             CertificateId = certificateId;
             CertificatePem = certificatePem;
             KeyPair = keyPair;
+            this.pfx = pfx;
         }
 
         public string CertificateId { get; }
         public string CertificatePem { get; }
         public MistyConfigurationCertificateKeyPair KeyPair { get; }
+        public string pfx { get; }
     }
 
     public sealed class MistyConfigurationCertificateKeyPair
