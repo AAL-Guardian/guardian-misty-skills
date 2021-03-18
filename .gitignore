@@ -294,3 +294,5 @@ log.txt*
 logs/
 CoreBuild/
 LoginBuild/
+
+!*.appxbundle
