@@ -16,10 +16,6 @@ using MistyRobotics.Common.Types;
 using MistyRobotics.SDK.Messengers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.OpenSsl;
 
 namespace CloudConnector.Services
 {
@@ -47,32 +43,33 @@ namespace CloudConnector.Services
             try
             {
                 var caCert = X509Certificate.CreateFromCertFile("./rootCa.crt");
-            
-                StorageFolder storageFolder =
-                    ApplicationData.Current.LocalFolder;
-                StorageFile sampleFile =
-                    await storageFolder.CreateFileAsync("cert.pfx",
-                        CreationCollisionOption.ReplaceExisting);
-                byte[] report = Encoding.ASCII.GetBytes(_mistyConfiguration.Certificate.pfx);
-                
-                String[] bytesString = _mistyConfiguration.Certificate.pfx.Split(" ");
-                byte[] bytes = new byte[bytesString.Length];
-                for(int i = 0 ; i < bytes.Length ; ++i) {
-                    bytes[i] = Byte.Parse(bytesString[i]);
-                }
-                
-                await FileIO.WriteBytesAsync(sampleFile, bytes);
-            
+                var clientCert = X509Certificate.CreateFromCertFile("./certificate.cert.pfx");
+
+                //StorageFolder storageFolder =
+                //    ApplicationData.Current.LocalFolder;
+                //StorageFile sampleFile =
+                //    await storageFolder.CreateFileAsync("cert.pfx",
+                //        CreationCollisionOption.ReplaceExisting);
+                //byte[] report = Encoding.ASCII.GetBytes(_mistyConfiguration.Certificate.pfx);
+
+                //String[] bytesString = _mistyConfiguration.Certificate.pfx.Split(" ");
+                //byte[] bytes = new byte[bytesString.Length];
+                //for(int i = 0 ; i < bytes.Length ; ++i) {
+                //    bytes[i] = Byte.Parse(bytesString[i]);
+                //}
+
+                //await FileIO.WriteBytesAsync(sampleFile, bytes);
+
                 // var cert = _mistyConfiguration.Certificate.pfx;
                 // var pemData = Regex.Replace(Regex.Replace(cert, @"\s+", string.Empty), @"-+[^-]+-+", string.Empty);
                 // var pemBytes = Convert.FromBase64String(pemData);
-            
+
                 // var baseCert = new X509Certificate2(pemBytes);
                 // var rsa = ImportPrivateKey(_mistyConfiguration.Certificate.KeyPair.PrivateKey);
                 // var clientCert = baseCert.CopyWithPrivateKey(rsa);
 
-                X509Certificate2 clientCert = new X509Certificate2();
-                clientCert.Import(File.ReadAllBytes(Path.Combine(storageFolder.Path, "cert.pfx")), (string)null, X509KeyStorageFlags.Exportable);
+                //X509Certificate2 clientCert = new X509Certificate2();
+                //clientCert.Import(File.ReadAllBytes(Path.Combine(storageFolder.Path, "cert.pfx")), (string)null, X509KeyStorageFlags.Exportable);
 
                 _mqttClient = new MqttClient(_mistyConfiguration.Endpoint, 8883, true, caCert, clientCert,
                     MqttSslProtocols.TLSv1_2);
@@ -152,16 +149,6 @@ namespace CloudConnector.Services
         public void Dispose()
         {
             _mqttClient?.Disconnect();
-        }
-        
-        private RSACryptoServiceProvider ImportPrivateKey(string pem) {
-            PemReader pr = new PemReader(new StringReader(pem));
-            AsymmetricCipherKeyPair KeyPair = (AsymmetricCipherKeyPair)pr.ReadObject();
-            RSAParameters rsaParams = DotNetUtilities.ToRSAParameters((RsaPrivateCrtKeyParameters)KeyPair.Private);
-
-            RSACryptoServiceProvider csp = new RSACryptoServiceProvider();// cspParams);
-            csp.ImportParameters(rsaParams);
-            return csp;
         }
     }
 }
