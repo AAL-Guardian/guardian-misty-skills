@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CloudConnector.Services;
 using CloudConnector.Services.Interfaces;
 using MistyRobotics.Common.Data;
+using MistyRobotics.Common.Types;
 using MistyRobotics.SDK;
 using MistyRobotics.SDK.Messengers;
 using Newtonsoft.Json;
@@ -19,6 +20,7 @@ namespace CloudConnector
 		private IGuardianConfigurationService _mistyConfigurationService;
 		private IMqttService _mqttService;
 		private IMistyEventService _mistyEventService;
+		private ISkillManager _skillManager;
 
 		/// <summary>
 		/// Skill details for the robot
@@ -33,7 +35,13 @@ namespace CloudConnector
 		public INativeRobotSkill Skill { get; private set; } = new NativeRobotSkill("cloud_connector", "cb2b1aa5-1226-4554-8a61-2a87ab957c8f")
 		{
 			AllowedCleanupTimeInMs = 1000,
-			TimeoutInSeconds = int.MaxValue
+			TimeoutInSeconds = int.MaxValue,
+			StartupRules = new List<NativeStartupRule>()
+			{
+				NativeStartupRule.Manual,
+				NativeStartupRule.Robot,
+				NativeStartupRule.Startup
+			}
 		};
 
 		/// <summary>
@@ -57,7 +65,7 @@ namespace CloudConnector
 			 * 1 -> get config
 			 * 2 -> start mqtt connection and client
 			 * 3 -> listen for events from mqtt
-			 * 4 -> listen for event from misty
+			 * 4 -> listen for events from misty
 			 */
 
 			// string apiUrl = "https://smartrobotsolutions-guardian.free.beeceptor.com/config";
@@ -85,6 +93,9 @@ namespace CloudConnector
 
 			_mqttService.MqttMessageReceived += _mistyEventService.OnMqttMessage;
 			_mistyEventService.MistyMessageReceived += _mqttService.OnMistyMessage;
+
+			_skillManager = new SkillManager(_misty, config);
+			_skillManager.Start();
         }
 
 		/// <summary>

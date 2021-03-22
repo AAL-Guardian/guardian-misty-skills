@@ -107,8 +107,6 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Data\GuardianMessage.cs" />
-    <Compile Include="Data\GuardianData.cs" />
     <Compile Include="Data\MistyConfiguration.cs" />
     <Compile Include="Events\MistyEvent.cs" />
     <Compile Include="Events\MqttEvents.cs" />
@@ -116,8 +114,10 @@
     <Compile Include="Services\Interfaces\IGuardianConfigurationService.cs" />
     <Compile Include="Services\Interfaces\IMistyEventService.cs" />
     <Compile Include="Services\Interfaces\IMqttService.cs" />
+    <Compile Include="Services\Interfaces\ISkillManager.cs" />
     <Compile Include="Services\MqttService.cs" />
     <Compile Include="Services\MistyEventService.cs" />
+    <Compile Include="Services\SkillManager.cs" />
     <Compile Include="StartupTask.cs" />
     <Compile Include="CloudConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -129,9 +129,6 @@
     <None Include="cloud_connector_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="certificate.cert.pfx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png">
       <InProject>false</InProject>

@@ -20,30 +20,17 @@ namespace CloudConnector.Data
 
     public sealed class MistyConfigurationCertificate
     {
-        public MistyConfigurationCertificate(string certificateId, string certificatePem,
-            MistyConfigurationCertificateKeyPair keyPair, string pfx)
+        public MistyConfigurationCertificate(string certificateId, string pfxUrl, string pfxBase64)
         {
             CertificateId = certificateId;
-            CertificatePem = certificatePem;
-            KeyPair = keyPair;
-            this.pfx = pfx;
+            PfxUrl = pfxUrl;
+            PfxBase64 = pfxBase64;
         }
 
         public string CertificateId { get; }
-        public string CertificatePem { get; }
-        public MistyConfigurationCertificateKeyPair KeyPair { get; }
-        public string pfx { get; }
-    }
-
-    public sealed class MistyConfigurationCertificateKeyPair
-    {
-        public MistyConfigurationCertificateKeyPair(string privateKey, string publicKey)
-        {
-            PrivateKey = privateKey;
-            PublicKey = publicKey;
-        }
-
-        public string PrivateKey { get; }
-        public string PublicKey { get; }
+        public string PfxUrl { get; }
+        public string PfxFile { get; set; }
+        public string PfxBase64 { get; }
+        
     }
 }
