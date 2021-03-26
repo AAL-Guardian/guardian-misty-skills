@@ -51,8 +51,11 @@ namespace CloudConnector.Services
                 if (runningSkills.Data.All(s => s.UniqueId.ToString() != skill))
                 {
                     var mSkill = allSkills.Data.FirstOrDefault(s => s.UniqueId.ToString() == skill);
-                    await _misty.SendDebugMessageAsync($"Skill {mSkill.Name} not running anymore, restarting...");
-                    await _misty.RunSkillAsync(skill, mSkill.Parameters);
+                    if (mSkill != null)
+                    {
+                        await _misty.SendDebugMessageAsync($"Skill {mSkill.Name} not running anymore, restarting...");
+                        await _misty.RunSkillAsync(skill, mSkill.Parameters);
+                    }
                 }
             }
         }
