@@ -15,7 +15,7 @@ namespace CloudConnector.Services
     {
         private readonly IRobotMessenger _misty;
         private readonly MistyConfiguration _configuration;
-        private readonly IList<string> _skills;
+        // private readonly IList<string> _skills;
 
         private Timer _skillHeartbeatTimer;
 
@@ -23,10 +23,10 @@ namespace CloudConnector.Services
         {
             _misty = misty;
             _configuration = configuration;
-            _skills = new List<string>
-            {
-                "17497331-1cc1-43e2-a9ff-886a845f96fb"
-            };
+            // _skills = new List<string>
+            // {
+            //     "17497331-1cc1-43e2-a9ff-886a845f96fb"
+            // };
         }
 
         public IAsyncAction Start()
@@ -46,16 +46,13 @@ namespace CloudConnector.Services
         {
             var runningSkills = await _misty.GetRunningSkillsAsync();
             var allSkills = await _misty.GetSkillsAsync();
-            foreach (string skill in _skills)
+
+            foreach (var skill in allSkills.Data)
             {
-                if (runningSkills.Data.All(s => s.UniqueId.ToString() != skill))
+                if (runningSkills.Data.All(s => s.UniqueId != skill.UniqueId))
                 {
-                    var mSkill = allSkills.Data.FirstOrDefault(s => s.UniqueId.ToString() == skill);
-                    if (mSkill != null)
-                    {
-                        await _misty.SendDebugMessageAsync($"Skill {mSkill.Name} not running anymore, restarting...");
-                        await _misty.RunSkillAsync(skill, mSkill.Parameters);
-                    }
+                    await _misty.SendDebugMessageAsync($"Skill {skill.Name} not running anymore, restarting...");
+                    await _misty.RunSkillAsync(skill.UniqueId.ToString(), skill.Parameters);
                 }
             }
         }
