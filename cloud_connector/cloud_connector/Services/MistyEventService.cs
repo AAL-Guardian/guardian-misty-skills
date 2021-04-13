@@ -54,7 +54,7 @@ namespace CloudConnector.Services
         public async void OnMqttMessage(object sender, MqttMessageReceivedData data)
         {
             await _misty.TriggerEventAsync(
-                "guardian",
+                data.command,
                 "cloud_connector",
                 new Dictionary<string, object>()
                 {

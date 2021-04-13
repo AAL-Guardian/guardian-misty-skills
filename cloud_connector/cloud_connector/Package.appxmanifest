@@ -12,7 +12,7 @@
   <Identity
     Name="CloudConnector1-uwp"
     Publisher="CN=SmartRobotSolutions"
-    Version="1.0.30.0" />
+    Version="1.0.31.0" />
 
   <mp:PhoneIdentity PhoneProductId="5c2f077d-c543-4093-9ae1-5de7ce1c285a" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
