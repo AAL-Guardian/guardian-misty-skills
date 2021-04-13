@@ -123,7 +123,7 @@ namespace CloudConnector.Services
         public async void OnMistyMessage(object sender, MistyMessageReceivedData data)
         {
             await _misty.SendDebugMessageAsync($"Sending message.");
-            _mqttClient.Publish(_mistyConfiguration.RobotTopic,
+            _mqttClient.Publish(_mistyConfiguration.RobotTopic + "/event",
                 Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true);
         }
 
