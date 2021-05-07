@@ -120,11 +120,11 @@ namespace CloudConnector.Services
             }
         }
 
-        public async void OnMistyMessage(object sender, MistyMessageReceivedData data)
+        public async void OnMistyMessage(object sender, string data)
         {
             await _misty.SendDebugMessageAsync($"Sending message.");
             _mqttClient.Publish(_mistyConfiguration.RobotTopic + "/event",
-                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true);
+                Encoding.UTF8.GetBytes(data), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
         }
 
         private void OnMqttMessageReceived(MqttMessageReceivedData data)

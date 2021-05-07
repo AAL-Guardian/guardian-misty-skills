@@ -7,7 +7,7 @@ namespace CloudConnector.Services.Interfaces
     public interface IMqttService: IDisposable
     {
         IAsyncAction Start();
-        void OnMistyMessage(object sender, MistyMessageReceivedData data);
+        void OnMistyMessage(object sender, string data);
         event MqttMessageReceivedHandler MqttMessageReceived;
     }
 }

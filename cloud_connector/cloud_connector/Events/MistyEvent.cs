@@ -1,10 +1,4 @@
 namespace CloudConnector.Events
 {
-    public delegate void MistyMessageReceivedHandler(object sender, MistyMessageReceivedData e);
-
-    public sealed class MistyMessageReceivedData
-    {
-        public string command { get; set; }
-        public string data { get; set; }
-    }
+    public delegate void MistyMessageReceivedHandler(object sender, string e);
 }

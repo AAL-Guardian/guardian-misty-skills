@@ -30,17 +30,7 @@ namespace CloudConnector.Services
             {
                 try
                 {
-                    dynamic payload = JsonConvert.DeserializeObject(response.Data["Payload"].ToString());
-                    if (payload == null)
-                    {
-                        throw new ArgumentException("Invalid user event payload");
-                    }
-                    MistyMessageReceivedData eventdata = new MistyMessageReceivedData()
-                    {
-                        command = payload.guardian_command as string,
-                        data = payload.guardian_data as string
-                    };
-
+                    var eventdata = response.Data["Payload"].ToString();
                     OnMistyMessageReceived(eventdata);
                 }
                 catch (Exception e)
@@ -64,7 +54,7 @@ namespace CloudConnector.Services
                 new List<string>());
         }
 
-        private void OnMistyMessageReceived(MistyMessageReceivedData data)
+        private void OnMistyMessageReceived(string data)
         {
             MistyMessageReceived?.Invoke(this, data);
         }
