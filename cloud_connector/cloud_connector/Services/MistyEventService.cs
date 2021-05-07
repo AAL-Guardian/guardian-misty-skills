@@ -30,8 +30,11 @@ namespace CloudConnector.Services
             {
                 try
                 {
-                    var eventdata = response.Data["Payload"].ToString();
-                    OnMistyMessageReceived(eventdata);
+                    if (response.Data.ContainsKey("Payload"))
+                    {
+                        var eventdata = response.Data["Payload"].ToString();
+                        OnMistyMessageReceived(eventdata);
+                    }
                 }
                 catch (Exception e)
                 {

@@ -29,16 +29,8 @@ The json event will be send as Misty event with event name as the value of guard
 
 #### Triggering Misty Event -> Cloud:
 Any event send to the Guardian misty event.
-Cloud connector expects json format of:
-
-```json
-{
-    "guardian_command": "{command name}",
-    "guardian_data": "{data in plain text or json object}"
-}
-```
-
-The json event data will be send to the cloud on MQTT topic: {robotTopic}/event.
+Cloud connector accepts any format as long as its a string.
+The event data will be send to the cloud on MQTT topic: {robotTopic}/event.
 
 #### Configuration:
 
