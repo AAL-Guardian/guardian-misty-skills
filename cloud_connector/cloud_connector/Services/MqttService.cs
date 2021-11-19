@@ -23,6 +23,7 @@ namespace CloudConnector.Services
     {
         private readonly MistyConfiguration _mistyConfiguration;
         private readonly IRobotMessenger _misty;
+        private readonly string statusTopic;
         private MqttClient _mqttClient;
 
         public event MqttMessageReceivedHandler MqttMessageReceived;
@@ -31,6 +32,8 @@ namespace CloudConnector.Services
         {
             _mistyConfiguration = mistyConfiguration;
             _misty = misty;
+            
+            statusTopic = $"{_mistyConfiguration.RobotTopic}/status";
         }
 
         public IAsyncAction Start()
@@ -53,7 +56,8 @@ namespace CloudConnector.Services
                 _mqttClient.MqttMsgPublishReceived += MqttMsgPublishReceived;
                 _mqttClient.ConnectionClosed += MqttConnectionClosed;
 
-                _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
+                await _misty.SendDebugMessageAsync("Trying to connect to mqtt server...");
+                Connect();
                 SubscribeTopics();
                 await _misty.SendDebugMessageAsync($"RobotTopic: {_mistyConfiguration.RobotTopic}.");
                 await _misty.SendDebugMessageAsync(
@@ -116,7 +120,7 @@ namespace CloudConnector.Services
             {
                 _misty.Wait(5000);
                 _misty.SendDebugMessage("Reconnecting to mqtt...", null);
-                _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
+                Connect();
             }
         }
 
@@ -130,6 +134,15 @@ namespace CloudConnector.Services
         private void OnMqttMessageReceived(MqttMessageReceivedData data)
         {
             MqttMessageReceived?.Invoke(this, data);
+        }
+
+        private async void Connect()
+        {
+            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId, (string) null, (string) null, false, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true, statusTopic, "{\"alive\": false}", true, 60);
+            // _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
+            await _misty.SendDebugMessageAsync($"Connected, sending alive message...");
+            _mqttClient.Publish(_mistyConfiguration.RobotTopic + "/status",
+                Encoding.UTF8.GetBytes("{\"alive\": true}"), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
         }
 
         public void Dispose()
