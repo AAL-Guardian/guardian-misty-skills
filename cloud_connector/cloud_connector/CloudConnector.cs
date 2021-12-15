@@ -20,7 +20,6 @@ namespace CloudConnector
 		private IGuardianConfigurationService _mistyConfigurationService;
 		private IMqttService _mqttService;
 		private IMistyEventService _mistyEventService;
-		private ISkillManager _skillManager;
 
 		/// <summary>
 		/// Skill details for the robot
@@ -93,9 +92,6 @@ namespace CloudConnector
 
 			_mqttService.MqttMessageReceived += _mistyEventService.OnMqttMessage;
 			_mistyEventService.MistyMessageReceived += _mqttService.OnMistyMessage;
-
-			_skillManager = new SkillManager(_misty, config);
-			_skillManager.Start();
         }
 
 		/// <summary>

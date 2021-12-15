@@ -114,10 +114,8 @@
     <Compile Include="Services\Interfaces\IGuardianConfigurationService.cs" />
     <Compile Include="Services\Interfaces\IMistyEventService.cs" />
     <Compile Include="Services\Interfaces\IMqttService.cs" />
-    <Compile Include="Services\Interfaces\ISkillManager.cs" />
     <Compile Include="Services\MqttService.cs" />
     <Compile Include="Services\MistyEventService.cs" />
-    <Compile Include="Services\SkillManager.cs" />
     <Compile Include="StartupTask.cs" />
     <Compile Include="CloudConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
