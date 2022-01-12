@@ -7,5 +7,6 @@ namespace CloudConnector.Services.Interfaces
     public interface IGuardianConfigurationService: IDisposable
     {
         IAsyncOperation<MistyConfiguration> GetConfigurationAsync();
+        IAsyncAction ResetConfigurationAsync();
     }
 }

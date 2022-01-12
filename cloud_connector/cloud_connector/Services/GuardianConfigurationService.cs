@@ -16,22 +16,36 @@ namespace CloudConnector.Services
         private readonly IRobotMessenger _misty;
         private readonly string _apiUrl;
         private readonly string _robotCode;
-        private bool _resetConfig;
         private readonly StorageFolder _storageFolder = ApplicationData.Current.LocalFolder;
 
         private MistyConfiguration _configuration;
 
-        public GuardianConfigurationService(IRobotMessenger misty, string apiUrl, bool resetConfig, string robotCode)
+        public GuardianConfigurationService(IRobotMessenger misty, string apiUrl, string robotCode)
         {
             _misty = misty;
             _apiUrl = apiUrl;
-            _resetConfig = resetConfig;
             _robotCode = robotCode;
         }
 
         public IAsyncOperation<MistyConfiguration> GetConfigurationAsync()
         {
             return GetConfigurationAsyncHelper().AsAsyncOperation();
+        }
+        
+        public IAsyncAction ResetConfigurationAsync()
+        {
+            return ResetConfiguration().AsAsyncAction();
+        }
+
+        private async Task ResetConfiguration()
+        {
+            StorageFile configFile = (await _storageFolder.TryGetItemAsync("config.json")) as StorageFile;
+            if (configFile != null) // if config exists on misty then get that, else get from cloud
+            {
+                await _misty.SendDebugMessageAsync("Deleting Configuration...");
+                await configFile.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                await _misty.SendDebugMessageAsync("Config deleted.");
+            }
         }
 
         private async Task<MistyConfiguration> GetConfigurationAsyncHelper()
