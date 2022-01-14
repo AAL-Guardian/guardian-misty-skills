@@ -97,11 +97,13 @@ Use the following code snippet to receive events from the cloud connector/ cloud
 
 #### Updating the current working environment:
 Inside the skill manager of the misty.
-1. Go to the cloud_connector and open the settings menu via the cog icon.
-2. In the send a event field fill the following value: changeEnv
+1. Go to the cloud_connector and open the settings menu via the cog icon.\
+![alt text](readme-images/Settings.PNG)\
+2. In the trigger skill event field fill the following value: changeEnv
 3. Click on the plus icon to add a parameter to the event and fill in the following key and value: key = env, value = prod or dev, depending on your choice.
-4. Click on send event
-If everything went succesfull the misty will reset its configuration from the cloud and reboot itself to setup itself for the new environment.
+4. Click on Submit Event\
+![alt text](readme-images/Dialog.PNG)\
+If everything went successfully the misty will reset its configuration from the cloud and reboot itself to setup itself for the new environment.
 
 #### Deploy:
 Upload the cloud_connector.zip file in the publish folder to the misty skill runner

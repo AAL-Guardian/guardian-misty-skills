@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CloudConnector.Data;
 using CloudConnector.Services;
 using CloudConnector.Services.Interfaces;
 using MistyRobotics.Common.Data;
@@ -14,9 +15,6 @@ namespace CloudConnector
     internal class CloudConnector : IMistySkill
     {
         private const string SkillId = "cb2b1aa5-1226-4554-8a61-2a87ab957c8f";
-        private const string ApiEndpointParamName = "ConfigurationEndpoint";
-        private const string ResetConfigParamName = "ResetConfig";
-        private const string RobotCodeParamName = "RobotCode";
 
         private IRobotMessenger _misty;
         private IGuardianConfigurationService _mistyConfigurationService;
@@ -82,7 +80,7 @@ namespace CloudConnector
 
             await _misty.SendDebugMessageAsync($"Current Env = {_currentEnvironment}.");
 
-            _misty.RegisterUserEvent("changeEnv", ChangeEnvironmentHandler, 0, true, null);
+            _misty.RegisterUserEvent( "changeEnv", ChangeEnvironmentHandler, 0, true, null);
 
             string apiUrl = $"https://api.guardian.jef.it/{_currentEnvironment}/robot/install";
             await _misty.SendDebugMessageAsync($"Current config url = {apiUrl}.");
@@ -108,11 +106,14 @@ namespace CloudConnector
 
         private async void ChangeEnvironmentHandler(IUserEvent eventresponse)
         {
-            await _misty.SendDebugMessageAsync(
-                $"Changing environment from {_currentEnvironment} to {eventresponse.Data["env"].ToString()}.");
-            await _misty.SetSharedDataAsync("environment", eventresponse.Data["env"].ToString(), true, SkillId);
+            var rawPayload = eventresponse.Data["Payload"].ToString();
+            var payload = JsonConvert.DeserializeObject<ChangeEnvData>(rawPayload);
+            await _misty.SendDebugMessageAsync( 
+                $"Changing environment from {_currentEnvironment} to {payload.env}.");
+            await _misty.SetSharedDataAsync("environment", payload.env, true, SkillId);
             await _mistyConfigurationService.ResetConfigurationAsync();
-            await _misty.RestartRobotAsync(false, false);
+            await _misty.SendDebugMessageAsync("Restarting...");
+            await _misty.RestartRobotAsync(true, false);
         }
 
         /// <summary>
