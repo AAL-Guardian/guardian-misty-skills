@@ -50,7 +50,7 @@ namespace CloudConnector.Services
 
                 _mqttClient = new MqttClient(_mistyConfiguration.Endpoint, 8883, true, caCert, clientCert,
                     MqttSslProtocols.TLSv1_2);
-
+                
                 _mqttClient.MqttMsgSubscribed += MqttMsgSubscribed;
                 _mqttClient.MqttMsgUnsubscribed += MqttMsgUnsubscribed;
                 _mqttClient.MqttMsgPublishReceived += MqttMsgPublishReceived;
@@ -138,16 +138,21 @@ namespace CloudConnector.Services
 
         private async void Connect()
         {
-            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId, (string) null, (string) null, true, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true, statusTopic, "{\"alive\": false}", true, 60);
-            // _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
+            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId, (string) null, (string) null, true, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true, _mistyConfiguration.RobotTopic + "/status", "{\"alive\": false}", false, 30);
             await _misty.SendDebugMessageAsync($"Connected, sending alive message...");
-            _mqttClient.Publish(_mistyConfiguration.RobotTopic + "/status",
-                Encoding.UTF8.GetBytes("{\"alive\": true}"), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true);
+            SendAliveMessage(true);
         }
 
         public void Dispose()
         {
+            SendAliveMessage(false);
             _mqttClient?.Disconnect();
+        }
+
+        private void SendAliveMessage(bool alive)
+        {
+            _mqttClient.Publish(_mistyConfiguration.RobotTopic + "/status",
+                Encoding.UTF8.GetBytes("{\"alive\": " + alive.ToString().ToLower() + "}"), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true);
         }
     }
 }

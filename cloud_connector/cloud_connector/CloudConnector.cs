@@ -128,6 +128,7 @@ namespace CloudConnector
         public void OnCancel(object sender, IDictionary<string, object> parameters)
         {
             //TODO Put your code here and update the summary above
+            Dispose(true);
         }
 
         /// <summary>
@@ -138,6 +139,7 @@ namespace CloudConnector
         public void OnTimeout(object sender, IDictionary<string, object> parameters)
         {
             //TODO Put your code here and update the summary above
+            Dispose(true);
         }
 
         #region IDisposable Support
