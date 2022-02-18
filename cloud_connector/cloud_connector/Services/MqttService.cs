@@ -138,11 +138,11 @@ namespace CloudConnector.Services
 
         private async void Connect()
         {
-            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId, (string) null, (string) null, false, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true, statusTopic, "{\"alive\": false}", true, 60);
+            _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId, (string) null, (string) null, true, MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true, statusTopic, "{\"alive\": false}", true, 60);
             // _mqttClient.Connect(_mistyConfiguration.Certificate.CertificateId);
             await _misty.SendDebugMessageAsync($"Connected, sending alive message...");
             _mqttClient.Publish(_mistyConfiguration.RobotTopic + "/status",
-                Encoding.UTF8.GetBytes("{\"alive\": true}"), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, false);
+                Encoding.UTF8.GetBytes("{\"alive\": true}"), MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, true);
         }
 
         public void Dispose()
