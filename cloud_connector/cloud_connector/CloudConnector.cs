@@ -21,7 +21,6 @@ namespace CloudConnector
         private IMqttService _mqttService;
         private IMistyEventService _mistyEventService;
         private ISkillManager _skillManager;
-        private string _currentEnvironment;
 
         /// <summary>
         /// Skill details for the robot
@@ -69,20 +68,15 @@ namespace CloudConnector
              * 4 -> listen for events from misty
              */
 
-            var getEnv = await _misty.GetSharedDataAsync("environment", SkillId);
-            if (getEnv.Data == null)
-            {
-                await _misty.SetSharedDataAsync("environment", "prod", true, SkillId);
-                _currentEnvironment = "prod";
-            }
-            else
-                _currentEnvironment = getEnv.Data.ToString();
-
+#if DEBUG
+            string apiUrl = $"https://api.guardian.jef.it/dev/robot/install";
+            string _currentEnvironment = "dev";
+#else
+            string apiUrl = $"https://api.guardian.jef.it/prod/robot/install";
+            string _currentEnvironment = "prod";
+#endif
+            
             await _misty.SendDebugMessageAsync($"Current Env = {_currentEnvironment}.");
-
-            _misty.RegisterUserEvent( "changeEnv", ChangeEnvironmentHandler, 0, true, null);
-
-            string apiUrl = $"https://api.guardian.jef.it/{_currentEnvironment}/robot/install";
             await _misty.SendDebugMessageAsync($"Current config url = {apiUrl}.");
 
             var info = await _misty.GetDeviceInformationAsync();
@@ -102,18 +96,6 @@ namespace CloudConnector
 
             _skillManager = new SkillManager(_misty, config);
             _skillManager.Start();
-        }
-
-        private async void ChangeEnvironmentHandler(IUserEvent eventresponse)
-        {
-            var rawPayload = eventresponse.Data["Payload"].ToString();
-            var payload = JsonConvert.DeserializeObject<ChangeEnvData>(rawPayload);
-            await _misty.SendDebugMessageAsync( 
-                $"Changing environment from {_currentEnvironment} to {payload.env}.");
-            await _misty.SetSharedDataAsync("environment", payload.env, true, SkillId);
-            await _mistyConfigurationService.ResetConfigurationAsync();
-            await _misty.SendDebugMessageAsync("Restarting...");
-            await _misty.RestartRobotAsync(true, false);
         }
 
         /// <summary>
